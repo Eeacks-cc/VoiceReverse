@@ -30,4 +30,5 @@ backwards the your voice realtime. audio processing
 
 # Keys
 F1 - Start Backward your voice, voice will start playing when you release the key
+
 F10 - Quit
