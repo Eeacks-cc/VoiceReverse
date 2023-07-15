@@ -2,7 +2,7 @@
 
 #include "Globals.hpp"
 
-#define BUFFER_ARRAY_SIZE 5
+#define BUFFER_ARRAY_SIZE 10
 
 // wave wrapper
 namespace wwrapper

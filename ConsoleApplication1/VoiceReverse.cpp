@@ -1,4 +1,14 @@
-﻿#include "Includes.hpp"
+﻿/*
+*   VoiceReverse.cpp  
+*   ----------------------
+*   ExtremeBlackLiu 2023/7/16
+* 
+*   this used waveIn/Out api which is old api that is deprecated
+* 
+*/
+
+
+#include "Includes.hpp"
 #include "waveWrapper.hpp"
 
 int m_iCount = 0;
@@ -23,19 +33,22 @@ void CALLBACK waveInProc(HWAVEIN hwi, UINT uMsg, DWORD_PTR dwInstance, DWORD_PTR
 {
     if (uMsg == WIM_DATA)
     {
-        if (bInCapture && !bInPlaying)
+        if (!bInPlaying)
         {
-            size_t oldSize = vBuffer.size();
-            vBuffer.resize(oldSize + wwrapper::pWaveBuffer[m_iCount].dwBufferLength);
-            unsigned char* buf = vBuffer.data();
-            memcpy(buf + oldSize, wwrapper::pWaveBuffer[m_iCount].lpData, wwrapper::pWaveBuffer[m_iCount].dwBufferLength);
-        }
-        else
-        {
-            if (config::bEnableLoopback)
+            if (bInCapture)
             {
-                if (waveOutWrite(wwrapper::hWaveOut, &wwrapper::pWaveBuffer[m_iCount], sizeof(WAVEHDR)) != MMSYSERR_NOERROR)
-                    LOG("Excepted while waveOut, bInCapture = true");
+                size_t oldSize = vBuffer.size();
+                vBuffer.resize(oldSize + wwrapper::pWaveBuffer[m_iCount].dwBufferLength);
+                unsigned char* buf = vBuffer.data();
+                memcpy(buf + oldSize, wwrapper::pWaveBuffer[m_iCount].lpData, wwrapper::pWaveBuffer[m_iCount].dwBufferLength);
+            }
+            else
+            {
+                if (config::bEnableLoopback)
+                {
+                    if (waveOutWrite(wwrapper::hWaveOut, &wwrapper::pWaveBuffer[m_iCount], sizeof(WAVEHDR)) != MMSYSERR_NOERROR)
+                        LOG("Excepted while waveOut, bInCapture = true");
+                }
             }
         }
 
