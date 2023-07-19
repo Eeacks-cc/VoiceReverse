@@ -11,19 +11,19 @@
 #include "Includes.hpp"
 #include "waveWrapper.hpp"
 
+#include "menu.hpp"
+
 int m_iCount = 0;
 int m_iCount1 = 0;
 
 bool bInPlaying = false;
 bool bInCapture = false;
-bool bPlayWithNormal = false;
 
 DWORD64 dwStartTime;
 std::vector<unsigned char> vBuffer;
 
 void swap_byte(std::vector<unsigned char> &vTarget, int a, int b)
 {
-    if (bPlayWithNormal) return;
     const unsigned char temp = vTarget[b];
     vTarget[b] = vTarget[a];
     vTarget[a] = temp;
@@ -79,104 +79,63 @@ void CALLBACK waveOutProc(HWAVEIN hwi, UINT uMsg, DWORD_PTR dwInstance, DWORD_PT
     }
 }
 
-
-void Thread()
-{
-    UINT deviceIndex;
-    std::vector<std::pair<int, std::string>> m_vDevices;
-    wwrapper::GetOutputDevices(m_vDevices);
-
-    std::cout << "Available speaker devices:" << std::endl;
-    for (UINT i = 0; i < m_vDevices.size(); i++)
-    {
-        std::cout << m_vDevices[i].first << ". ";
-        std::cout << m_vDevices[i].second << std::endl;
-    }
-
-    LOG("Select Output device:");
-    std::cin >> deviceIndex;
-    //deviceIndex = 2;
-
-    wwrapper::InitializeOut(&waveOutProc,deviceIndex);
-    m_vDevices.clear();
-    wwrapper::GetInputDevices(m_vDevices);
-
-    std::cout << "Available microphone devices:" << std::endl;
-    for (UINT i = 0; i < m_vDevices.size(); i++)
-    {
-        std::cout << m_vDevices[i].first << ". ";
-        std::cout << m_vDevices[i].second << std::endl;
-    }
-
-    LOG("Select input device:");
-    std::cin >> deviceIndex;
-    //deviceIndex = 0;
-    wwrapper::Initialize(&waveInProc, deviceIndex);
-
-    LOG("Enable Loopback? (0 for off, 1 for on)");
-    std::cin >> config::bEnableLoopback;
-
-    LOG("waiting for end(press INS to end)...");
-
-    bInCapture = false;
-    while (!GetAsyncKeyState(VK_F10))
-    {
-        bool Mode0 = GetAsyncKeyState(VK_F1) != 0; // backward only
-        bool Mode1 = GetAsyncKeyState(VK_F2) != 0; // normal + backward
-        
-        if (Mode0 || Mode1)
-        {
-            if (!bInCapture)
-            {
-                dwStartTime = GetTickCount64();
-                bPlayWithNormal = Mode1;
-                LOG("start recording...");
-                bInCapture = true;
-            }
-        }
-        if (!Mode0 && !Mode1)
-        {
-            DWORD64 delta = GetTickCount64() - dwStartTime;
-            if (vBuffer.size() > 0)
-            {
-                std::cout << "playing...( " << delta << "ms captured)" << std::endl;
-                WAVEHDR* wHeader = nullptr;
-
-                for (int i = 0; i < vBuffer.size() / 2; i += 2)
-                {
-                    int reverse_pos = vBuffer.size() - i - 1;
-
-                    swap_byte(vBuffer, i, reverse_pos - 1);
-                    swap_byte(vBuffer, i + 1, reverse_pos);
-                }
-
-                wHeader = wwrapper::HeaderQueue::Create(&vBuffer, delta + 1000);
-                bInPlaying = true;
-
-                if (waveOutWrite(wwrapper::hWaveOut, wHeader, sizeof(WAVEHDR)) != MMSYSERR_NOERROR)
-                    LOG("Excepted while playing backward");
-                
-                while (!bLastPlayDone)
-                    Sleep(1);
-                
-                bInPlaying = false;
-                bLastPlayDone = false;
-                bInCapture = false;
-            }
-        }
-    }
-
-    wwrapper::End();
-}
-
 int main()
 {
     LOG("Initializing GUI...");
-    //Sleep(1300);
-    LOG("just kidding, no gui atm");
 
-    HANDLE hThread = CreateThread(0, 0, (LPTHREAD_START_ROUTINE)Thread, 0, 0, 0);
-    WaitForSingleObject(hThread, 0xFFFFFFFF);
+    wwrapper::GetOutputDevices(config::m_vOutputDevices);
+    wwrapper::GetInputDevices(config::m_vInputDevices);
+    menu::Initialize();
+
+    bInCapture = false;
+    while (!config::bEnd)
+    {
+        while (!config::bSelectingDevice)
+        {
+            bool Mode0 = GetAsyncKeyState(config::dwStartKey) != 0;
+            if (menu::m_pBindingKey)
+                Mode0 = false;
+            if (Mode0)
+            {
+                if (!bInCapture)
+                {
+                    dwStartTime = GetTickCount64();
+                    LOG("start recording...");
+                    bInCapture = true;
+                }
+            }
+            else
+            {
+                DWORD64 delta = GetTickCount64() - dwStartTime;
+                if (vBuffer.size() > 0)
+                {
+                    std::cout << "playing...( " << delta << "ms captured)" << std::endl;
+                    WAVEHDR* wHeader = nullptr;
+
+                    for (int i = 0; i < vBuffer.size() / 2; i += 2)
+                    {
+                        int reverse_pos = vBuffer.size() - i - 1;
+
+                        swap_byte(vBuffer, i, reverse_pos - 1);
+                        swap_byte(vBuffer, i + 1, reverse_pos);
+                    }
+
+                    wHeader = wwrapper::HeaderQueue::Create(&vBuffer, delta + 1000);
+                    bInPlaying = true;
+
+                    if (waveOutWrite(wwrapper::hWaveOut, wHeader, sizeof(WAVEHDR)) != MMSYSERR_NOERROR)
+                        LOG("Excepted while playing backward");
+
+                    while (!bLastPlayDone)
+                        Sleep(1);
+
+                    bInPlaying = false;
+                    bLastPlayDone = false;
+                    bInCapture = false;
+                }
+            }
+        }
+    }
 
     return 0;
 }

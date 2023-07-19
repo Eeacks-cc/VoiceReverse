@@ -55,6 +55,7 @@ namespace wwrapper
         }
 
         CreateThread(0, 0, (LPTHREAD_START_ROUTINE)HeaderQueue::ThreadUnpapare, 0, 0, 0);
+        return true;
 	}
 
     void InitializeOut(void* pCallback, UINT uDeviceID)
@@ -86,6 +87,7 @@ namespace wwrapper
 
     void GetInputDevices(std::vector<std::pair<int, std::string>>& pOut)
     {
+        pOut.clear();
         UINT iDevicesCount = waveInGetNumDevs();
         if (iDevicesCount == 0)
         {
@@ -98,7 +100,7 @@ namespace wwrapper
             WAVEINCAPSA deviceCaps;
             if (waveInGetDevCapsA(i, &deviceCaps, sizeof(deviceCaps)) == MMSYSERR_NOERROR)
             {
-                std::pair<int, std::string> pPair = { i , deviceCaps.szPname };
+                std::pair<int, std::string> pPair = { i , ConvertAnsiToUtf8(deviceCaps.szPname) };
                 pOut.push_back(pPair);
             }
         };
@@ -106,6 +108,7 @@ namespace wwrapper
 
     void GetOutputDevices(std::vector<std::pair<int, std::string>>& pOut)
     {
+        pOut.clear();
         UINT iDevicesCount = waveOutGetNumDevs();
         if (iDevicesCount == 0)
         {
@@ -118,7 +121,7 @@ namespace wwrapper
             WAVEOUTCAPSA deviceCaps;
             if (waveOutGetDevCapsA(i, &deviceCaps, sizeof(deviceCaps)) == MMSYSERR_NOERROR)
             {
-                std::pair<int, std::string> pPair = { i , deviceCaps.szPname };
+                std::pair<int, std::string> pPair = { i , ConvertAnsiToUtf8(deviceCaps.szPname) };
                 pOut.push_back(pPair);
             }
         };
