@@ -16,8 +16,6 @@ backwards the your voice realtime. audio processing
 
 # TODO
 
-* implement Dear IMGUI
-* custom key binding
 * save the settings
 
 # Install guide
