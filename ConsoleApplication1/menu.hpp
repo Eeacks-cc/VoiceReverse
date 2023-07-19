@@ -167,6 +167,16 @@ namespace menu
                         ImGui::SetTooltip(u8"打开回环之后除非正在录制倒放，否则麦克风输入将会被正常传输到输出麦克风设备");
 
                     ImGui::NewLine();
+                    
+                    if (ImGui::Checkbox(u8"启用控制台", &config::bShowConsole))
+                    {
+                        ShowWindow(config::hConsoleHWND, (config::bShowConsole ? SW_SHOW : SW_HIDE));
+                    }
+                    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+                        ImGui::SetTooltip(u8"打开/关闭控制台，可以查看日志");
+
+                    ImGui::NewLine();
+                    
                     if (ImGui::Button(u8"更改设备"))
                     {
                         config::iSetupStage = 0;
@@ -199,6 +209,9 @@ namespace menu
         CleanupDeviceD3D();
         ::DestroyWindow(hwnd);
         ::UnregisterClass(wc.lpszClassName, wc.hInstance);
+
+        wwrapper::End();
+        exit(0);
 
         return 0;
 	}

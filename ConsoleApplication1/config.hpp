@@ -17,4 +17,7 @@ namespace config
 	volatile bool bSelectingDevice = true; // 哈哈,即使是公认最好的clang编译器在不加volatile修饰符的情况下也会优化失败导致代码未按照预期的运行
 
 	DWORD dwStartKey = 0;
+
+	HWND hConsoleHWND;
+	bool bShowConsole = false;
 }

@@ -81,7 +81,9 @@ void CALLBACK waveOutProc(HWAVEIN hwi, UINT uMsg, DWORD_PTR dwInstance, DWORD_PT
 
 int main()
 {
+    config::hConsoleHWND = GetConsoleWindow();
     LOG("Initializing GUI...");
+    ShowWindow(config::hConsoleHWND, SW_HIDE);
 
     wwrapper::GetOutputDevices(config::m_vOutputDevices);
     wwrapper::GetInputDevices(config::m_vInputDevices);
