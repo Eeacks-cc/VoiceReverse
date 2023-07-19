@@ -1,32 +1,26 @@
 # VoiceReverse
 
-backwards the your voice realtime. audio processing
+实时倒放你的麦克风。音频处理
 
-# Requirements
+# 构建要求
 
-* C++ 14(or greater)
+* C++ 17
+* Visual Studio 2022
 
-# OS
+# 操作系统
 
 * Windows
 
-# Known Issues
+# 已知问题
 
-* sometimes waveInAddBuffer will react in-playing buffer audio data and excepted
+* 有时候waveInAddBuffer会因为尝试播放正在使用中的音频数据而导致异常
 
-# TODO
+# 计划清单
 
-* save the settings
+* 保存设置，不需要每次都初始化再配置
 
-# Install guide
+# 使用指南
 
-1. Download from Release
-2. Install VB Cable driver from [VB-Audio](https://vb-audio.com/Cable/)
-3. Run
-4. Select Input/Output devices
-5. (optional) Enable loopback (if you wanna people hear you speaking in normally)
-
-# Keys
-F1 - Start Backward your voice, voice will start playing when you release the key
-
-F10 - Quit
+1. 从Release中下载最新的版本
+2. 安装 VB Cable 驱动 -> [VB-Audio](https://vb-audio.com/Cable/)
+3. 运行
