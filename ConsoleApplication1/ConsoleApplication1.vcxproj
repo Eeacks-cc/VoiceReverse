@@ -149,6 +149,7 @@
     <ClInclude Include="3rdParty\imgui\imstb_rectpack.h" />
     <ClInclude Include="3rdParty\imgui\imstb_textedit.h" />
     <ClInclude Include="3rdParty\imgui\imstb_truetype.h" />
+    <ClInclude Include="3rdParty\json.hpp" />
     <ClInclude Include="config.hpp" />
     <ClInclude Include="Globals.hpp" />
     <ClInclude Include="Includes.hpp" />

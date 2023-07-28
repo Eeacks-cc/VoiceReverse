@@ -148,6 +148,7 @@ namespace menu
                         wwrapper::Initialize(&waveInProc, config::iSelectedInputDevice);
                         config::bSelectingDevice = false;
                         config::iSetupStage = 1;
+                        config::AutoLoad();
                     }
 
                     ImGui::End();
@@ -183,6 +184,27 @@ namespace menu
                         wwrapper::End();
                     }
 
+                    ImGui::NewLine();
+
+                    ImGui::Checkbox(u8"自动加载设置", &config::bAutoLoadSettings);
+                    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+                        ImGui::SetTooltip(u8"打开此项后需要保存设置才能够在下次启动时自动加载");
+
+                    if (ImGui::Button(u8"加载设置"))
+                    {
+                        config::Load();
+                    }
+                    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+                        ImGui::SetTooltip(u8"加载此页面所有设置");
+                    
+                    ImGui::SameLine();
+
+                    if (ImGui::Button(u8"保存设置"))
+                    {
+                        config::Save();
+                    }
+                    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+                        ImGui::SetTooltip(u8"保存此页面所有设置，注意：不包括设备选择，考虑到设备可能会新增/减少，会导致设备id偏移");
 
                     ImGui::End();
                 }

@@ -20,4 +20,6 @@ namespace config
 
 	HWND hConsoleHWND;
 	bool bShowConsole = false;
+
+	bool bAutoLoadSettings = false;
 }

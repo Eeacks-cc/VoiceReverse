@@ -86,5 +86,8 @@
     <ClInclude Include="3rdParty\imgui\imgui_impl_dx11.h">
       <Filter>3rdParty\imgui</Filter>
     </ClInclude>
+    <ClInclude Include="3rdParty\json.hpp">
+      <Filter>3rdParty</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
