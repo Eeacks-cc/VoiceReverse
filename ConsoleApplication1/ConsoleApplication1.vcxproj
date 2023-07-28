@@ -136,7 +136,9 @@
     <ClCompile Include="3rdParty\imgui\imgui_impl_win32.cpp" />
     <ClCompile Include="3rdParty\imgui\imgui_tables.cpp" />
     <ClCompile Include="3rdParty\imgui\imgui_widgets.cpp" />
-    <ClCompile Include="VoiceReverse.cpp" />
+    <ClCompile Include="VoiceReverse.cpp">
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DeploymentContent>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="3rdParty\imgui\imconfig.h" />
