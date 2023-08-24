@@ -28,7 +28,7 @@
 9. 按住倒放按键时，进行录音，松开按键时以倒放形式输出录制的声音片段
 10. 开启loopback功能时，说话的同时会在本地实时环回麦克风的声音，但录制时loopback将禁用
 
-#混音使用
+# 混音使用
 
 可使用如[VoiceMeeter](https://vb-audio.com/Voicemeeter/banana.htm)的banana版本或者Potato版本，拥有两路或以上虚拟输入输出及混音能力的软件进行同时loopback及录制
 思路：
