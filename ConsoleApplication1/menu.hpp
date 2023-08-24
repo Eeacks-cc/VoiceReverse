@@ -161,6 +161,7 @@ namespace menu
                         config::bSelectingDevice = false;
                         config::iSetupStage = 1;
                         config::AutoLoad();
+                        frameTime = 1.f / config::fMaxFps;
                     }
 
                     ImGui::End();

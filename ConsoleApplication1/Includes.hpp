@@ -27,6 +27,7 @@ namespace config
 		json["dwStartKey"] = dwStartKey;
 		json["bShowConsole"] = bShowConsole;
 		json["bAutoLoadSettings"] = bAutoLoadSettings;
+		json["fMaxFps"] = fMaxFps;
 
 		std::ofstream f("settings.json");
 		if (!f.is_open())
@@ -50,6 +51,7 @@ namespace config
 		bEnableLoopback = json["bEnableLoopback"].get<bool>();
 		dwStartKey = json["dwStartKey"].get<DWORD>();
 		bShowConsole = json["bShowConsole"].get<bool>();
+		fMaxFps = json["fMaxFps"];
 		ShowWindow(hConsoleHWND, (bShowConsole ? SW_SHOW : SW_HIDE));
 
 		bAutoLoadSettings = json["bAutoLoadSettings"].get<bool>();
