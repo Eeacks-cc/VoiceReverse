@@ -136,7 +136,9 @@ int main()
                     bInCapture = false;
                 }
             }
+            Sleep(1); // 这两个while忘记Sleep(1);了，是cpu使用率暴增的罪魁祸首，粗心了
         }
+        Sleep(1);
     }
 
     return 0;

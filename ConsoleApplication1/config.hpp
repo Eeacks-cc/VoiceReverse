@@ -21,5 +21,7 @@ namespace config
 	HWND hConsoleHWND;
 	bool bShowConsole = false;
 
+	float fMaxFps = 30.f;
+
 	bool bAutoLoadSettings = false;
 }

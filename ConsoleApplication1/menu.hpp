@@ -68,6 +68,13 @@ namespace menu
 
         ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
+        // 锁帧叫chatgpt写的 不想重新造轮子了
+        double frameTime = 1.0 / config::fMaxFps;
+        LARGE_INTEGER frequency;
+        LARGE_INTEGER lastFrameTime;
+
+        QueryPerformanceFrequency(&frequency);
+        QueryPerformanceCounter(&lastFrameTime);
         // Main loop
         while (!config::bEnd)
         {
@@ -81,6 +88,11 @@ namespace menu
             }
             if (config::bEnd)
                 break;
+
+            LARGE_INTEGER currentFrameTime;
+            QueryPerformanceCounter(&currentFrameTime);
+            double deltaTime = static_cast<double>(currentFrameTime.QuadPart - lastFrameTime.QuadPart) / frequency.QuadPart;
+            lastFrameTime = currentFrameTime;
 
             // Start the Dear ImGui frame
             ImGui_ImplDX11_NewFrame();
@@ -190,6 +202,18 @@ namespace menu
                     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
                         ImGui::SetTooltip(u8"打开此项后需要保存设置才能够在下次启动时自动加载");
 
+                    ImGui::NewLine();
+
+                    ImGui::Text(u8"锁帧");
+                    if (ImGui::SliderFloat("##锁帧", &config::fMaxFps, 1.f, 300.f))
+                    {
+                        frameTime = 1.f / config::fMaxFps;
+                    }
+                    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+                        ImGui::SetTooltip(u8"锁帧能够轻微的减少UI在不必要的高帧率下渲染时带来的性能损失，对性能影响不大");
+
+                    ImGui::NewLine();
+
                     if (ImGui::Button(u8"加载设置"))
                     {
                         config::Load();
@@ -219,6 +243,14 @@ namespace menu
             g_pd3dDeviceContext->ClearRenderTargetView(g_mainRenderTargetView, clear_color_with_alpha);
             ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
+            if (deltaTime < frameTime) {
+                double sleepTime = frameTime - deltaTime;
+                DWORD sleepMilliseconds = static_cast<DWORD>(sleepTime * 1000.0);
+                if (sleepMilliseconds > 0) {
+                    Sleep(sleepMilliseconds);
+                }
+            }
+            
             g_pSwapChain->Present(1, 0); // Present with vsync
             //g_pSwapChain->Present(0, 0); // Present without vsync
         }
