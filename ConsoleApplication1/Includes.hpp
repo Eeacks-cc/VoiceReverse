@@ -51,7 +51,7 @@ namespace config
 		bEnableLoopback = json["bEnableLoopback"].get<bool>();
 		dwStartKey = json["dwStartKey"].get<DWORD>();
 		bShowConsole = json["bShowConsole"].get<bool>();
-		fMaxFps = json["fMaxFps"];
+		fMaxFps = json["fMaxFps"].get<float>();
 		ShowWindow(hConsoleHWND, (bShowConsole ? SW_SHOW : SW_HIDE));
 
 		bAutoLoadSettings = json["bAutoLoadSettings"].get<bool>();

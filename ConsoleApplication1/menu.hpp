@@ -93,6 +93,7 @@ namespace menu
             QueryPerformanceCounter(&currentFrameTime);
             double deltaTime = static_cast<double>(currentFrameTime.QuadPart - lastFrameTime.QuadPart) / frequency.QuadPart;
             lastFrameTime = currentFrameTime;
+            frameTime = 1.f / config::fMaxFps;
 
             // Start the Dear ImGui frame
             ImGui_ImplDX11_NewFrame();
@@ -161,7 +162,6 @@ namespace menu
                         config::bSelectingDevice = false;
                         config::iSetupStage = 1;
                         config::AutoLoad();
-                        frameTime = 1.f / config::fMaxFps;
                     }
 
                     ImGui::End();
