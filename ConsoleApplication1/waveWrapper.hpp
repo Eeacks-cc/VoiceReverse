@@ -69,7 +69,6 @@ namespace wwrapper
         waveFormat.nAvgBytesPerSec = waveFormat.nSamplesPerSec * waveFormat.nBlockAlign;
         waveFormat.cbSize = 0;
         waveOutOpen(&hWaveOut, uDeviceID, &waveFormat, (DWORD_PTR)pCallback, 0, CALLBACK_FUNCTION);
-
     }
 
     void Make_Header(WAVEHDR* pWHeader, void* pBuffer, size_t sSize)
@@ -163,5 +162,59 @@ namespace wwrapper
             return wHeader;
         }
 
+        WAVEHDR* Create(void* pBuffer, size_t szSize, DWORD dwAliveTime)
+        {
+            WAVEHDR* wHeader = new WAVEHDR;
+            memset(wHeader, 0x0, sizeof(WAVEHDR));
+
+            Make_Header(wHeader, pBuffer, szSize);
+
+            m_dQueue.push_back({ wHeader, GetTickCount64() + dwAliveTime });
+
+            return wHeader;
+        }
+    }
+}
+
+#define MULTIPLIER_0_5 0
+#define MULTIPLIER_1_0 1
+#define MULTIPLIER_1_5 2
+#define MULTIPLIER_2_0 3
+
+namespace SpeedMultiplier
+{
+    HWAVEOUT hWaveOut[4];
+
+    WAVEHDR pWaveBuffer[BUFFER_ARRAY_SIZE];
+
+    std::vector<std::pair<std::string, float>> m_vMultiplierString = {
+        { u8"0.5x", 0.5f },
+        { u8"1.0x", 1.0f },
+        { u8"1.5x", 1.5f },
+        { u8"2.0x", 2.0f }
+    };
+
+    void Initialize(HWAVEOUT* pOut, float Multiply, void* pCallback, UINT uDeviceID)
+    {
+        WAVEFORMATEX waveFormat;
+        waveFormat.wFormatTag = WAVE_FORMAT_PCM;
+        waveFormat.nChannels = 1;
+        waveFormat.nSamplesPerSec = 44100 * Multiply;
+        waveFormat.wBitsPerSample = 16;
+        waveFormat.nBlockAlign = (waveFormat.nChannels * waveFormat.wBitsPerSample) / 8;
+        waveFormat.nAvgBytesPerSec = waveFormat.nSamplesPerSec * waveFormat.nBlockAlign;
+        waveFormat.cbSize = 0;
+        if (waveOutOpen(pOut, uDeviceID, &waveFormat, (DWORD_PTR)pCallback, 0, CALLBACK_FUNCTION) != MMSYSERR_NOERROR)
+        {
+            LOG("SpeedMultiplier init failed...");
+        }
+    }
+
+    void LoadPresetMultiplier(void* pCallback, UINT uDeviceID)
+    {
+        Initialize(&hWaveOut[MULTIPLIER_0_5], 0.5, pCallback, uDeviceID);
+        Initialize(&hWaveOut[MULTIPLIER_1_0], 1.0, pCallback, uDeviceID);
+        Initialize(&hWaveOut[MULTIPLIER_1_5], 1.5, pCallback, uDeviceID);
+        Initialize(&hWaveOut[MULTIPLIER_2_0], 2.0, pCallback, uDeviceID);
     }
 }

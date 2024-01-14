@@ -24,7 +24,11 @@ namespace config
 	void Save()
 	{
 		json["bEnableLoopback"] = bEnableLoopback;
-		json["dwStartKey"] = dwStartKey;
+		json["dwReverseStartKey"] = dwReverseStartKey;
+		json["dwAccelerateStartKey"] = dwAccelerateStartKey;
+		json["dwTrashMicStartKey"] = dwTrashMicStartKey;
+		json["fSpeedMultiplier"] = fSpeedMultiplier;
+		json["iSelectedSpeedMultiplier"] = iSelectedSpeedMultiplier;
 		json["bShowConsole"] = bShowConsole;
 		json["bAutoLoadSettings"] = bAutoLoadSettings;
 		json["fMaxFps"] = fMaxFps;
@@ -49,12 +53,17 @@ namespace config
 		json = nlohmann::json::parse(f);
 
 		bEnableLoopback = json["bEnableLoopback"].get<bool>();
-		dwStartKey = json["dwStartKey"].get<DWORD>();
+		dwReverseStartKey = json["dwReverseStartKey"].get<DWORD>();
+		dwAccelerateStartKey = json["dwAccelerateStartKey"].get<DWORD>();
+		dwTrashMicStartKey = json["dwTrashMicStartKey"].get<DWORD>();
+		fSpeedMultiplier = json["fSpeedMultiplier"].get<float>();
+		iSelectedSpeedMultiplier = json["iSelectedSpeedMultiplier"].get<int>();
 		bShowConsole = json["bShowConsole"].get<bool>();
 		fMaxFps = json["fMaxFps"].get<float>();
 		ShowWindow(hConsoleHWND, (bShowConsole ? SW_SHOW : SW_HIDE));
 
 		bAutoLoadSettings = json["bAutoLoadSettings"].get<bool>();
+		f.close();
 	}
 	void AutoLoad()
 	{
@@ -65,7 +74,7 @@ namespace config
 			return;
 		}
 		json = nlohmann::json::parse(f);
-
+		f.close();
 		if (json["bAutoLoadSettings"].get<bool>())
 		{
 			Load();

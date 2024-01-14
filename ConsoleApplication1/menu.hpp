@@ -35,7 +35,7 @@ namespace menu
 	void CleanupRenderTarget();
 	LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
-    void KeyBind(const char* pName, DWORD* pKey);
+    void KeyBind(const char* pName, DWORD* pKey, ImVec2 v2Size = ImVec2(100, 40));
 
 	int Render() // imgui official code  main();
 	{
@@ -113,7 +113,7 @@ namespace menu
             {
                 case 0: // setup input/output device
                 {
-                    ImGui::Begin("VoiceReverse Setup", 0, ImGuiWindowFlags_NoResize);
+                    ImGui::Begin("VoiceReverse Setup", 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings);
 
                     ImGui::Text(u8"选择设备:");
                     
@@ -158,6 +158,7 @@ namespace menu
                     if (ImGui::Button(u8"确认"))
                     {
                         wwrapper::InitializeOut(&waveOutProc, config::iSelectedOutputDevice);
+                        SpeedMultiplier::LoadPresetMultiplier(&waveOutProc, config::iSelectedOutputDevice);
                         wwrapper::Initialize(&waveInProc, config::iSelectedInputDevice);
                         config::bSelectingDevice = false;
                         config::iSetupStage = 1;
@@ -169,16 +170,95 @@ namespace menu
                 break;
                 case 1:
                 {
-                    ImGui::Begin("VoiceReverse", 0, ImGuiWindowFlags_NoResize);
+                    ImGui::Begin("VoiceReverse", 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings);
 
-                    KeyBind(u8"热键", &config::dwStartKey);
+                    KeyBind(u8"声音反转热键", &config::dwReverseStartKey);
                     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-                        ImGui::SetTooltip(u8"鼠标单击之后开始记录按键，按下任意键将绑定该按键为热键，绑定时按下ESC来清除绑定");
+                        ImGui::SetTooltip(u8"[声音反转]鼠标单击之后开始记录按键，按下任意键将绑定该按键为热键，绑定时按下ESC来清除绑定");
+                    ImGui::NewLine();
+                    /*
+                    ImGui::SliderFloat(u8"声音加速倍数", &config::fSpeedMultiplier, 0.1f, 10.f);
+                    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+                        ImGui::SetTooltip(u8"越高越快，越低越慢");
+                    */
+
+                    ImGui::Text(u8"声音加速(作用于全部效果)");
+                    if (ImGui::BeginChild("##ChildSoundMultiplier", ImVec2(width / 2 - 30, 220), true))
+                    {
+                        ImGui::Text(u8"预设倍率：");
+                        ImGui::Separator();
+                        for (int i = 0; i < 4; i++)
+                        {
+                            bool is_selected = (config::iSelectedSpeedMultiplier == i);
+                            if (ImGui::Selectable(SpeedMultiplier::m_vMultiplierString[i].first.c_str(), is_selected))
+                            {
+                                config::fSpeedMultiplier = SpeedMultiplier::m_vMultiplierString[i].second;
+                                config::iSelectedSpeedMultiplier = i;
+                            }
+                            if (is_selected)
+                                ImGui::SetItemDefaultFocus();
+                        }
+                        ImGui::NewLine();
+                        KeyBind(u8"声音加速热键", &config::dwAccelerateStartKey);
+                        if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+                            ImGui::SetTooltip(u8"[声音加速]鼠标单击之后开始记录按键，按下任意键将绑定该按键为热键，绑定时按下ESC来清除绑定");
+                    }
+                    ImGui::EndChild();
+                    ImGui::NewLine();
+
+                    ImGui::Text(u8"留声");
+                    if (ImGui::BeginChild("##ChildSoundRecord", ImVec2(width / 2 - 30, 400), true))
+                    {
+                        ImGui::Text(u8"已留存：");
+                        ImGui::Separator();
+                        if (ImGui::BeginTable(u8"已留存：", 4))
+                        {
+                            for (int i = 0; i < config::vSavedClips.size(); i++)
+                            {
+                                ImGui::TableNextColumn();
+                                ImGui::Text(config::vSavedClips[i].m_sName.c_str());
+                                ImGui::TableNextColumn();
+                                KeyBind(0, &config::vSavedClips[i].m_dwHotKey, ImVec2(60, 25));
+                                if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+                                    ImGui::SetTooltip(u8"按下热键后以声音加速中选中的倍率播放该留声");
+
+                                ImGui::TableNextColumn();
+                                KeyBind(0, &config::vSavedClips[i].m_dwHotKeyReverse, ImVec2(60, 25));
+                                if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+                                    ImGui::SetTooltip(u8"按下热键后以声音加速中选中的倍率以倒放模式播放该留声");
+
+                                ImGui::TableNextColumn();
+                                if (ImGui::Button(u8"删除"))
+                                {
+                                    free(config::vSavedClips[i].m_pBuffer);
+                                    config::vSavedClips.erase(config::vSavedClips.begin() + i);
+                                }
+                            }
+                        }
+                        ImGui::EndTable();
+                        ImGui::NewLine();
+                        KeyBind(u8"新建留声热键", &config::dwRecordStartKey);
+                        if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+                            ImGui::SetTooltip(u8"[新建留声热键]鼠标单击之后开始记录按键，按下任意键将绑定该按键为热键，绑定时按下ESC来清除绑定");
+
+                    }
+                    ImGui::EndChild();
+                    ImGui::NewLine();
+
+                    ImGui::Text(u8"炸麦乘数");
+                    ImGui::SliderFloat(u8"##炸麦乘数", &config::fTrashMicMultiplier, 0.1f, 5.f);
+                    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+                        ImGui::SetTooltip(u8"炸麦乘数是在处理音频的时候对波形乘以的数值，只要数值不为1.f，就会产生崩坏效果；基于数值的不同，只略微影响声音变化。警告：输出将会变得非常大声，请注意音量");
+
+                    KeyBind(u8"炸麦热键", &config::dwTrashMicStartKey);
+                    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+                        ImGui::SetTooltip(u8"[炸麦]鼠标单击之后开始记录按键，按下任意键将绑定该按键为热键，绑定时按下ESC来清除绑定");
+
                     ImGui::NewLine();
 
                     ImGui::Checkbox(u8"回环", &config::bEnableLoopback);
                     if(ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-                        ImGui::SetTooltip(u8"打开回环之后除非正在录制倒放，否则麦克风输入将会被正常传输到输出麦克风设备");
+                        ImGui::SetTooltip(u8"打开回环之后除非正在录制倒放，否则麦克风输入将会被直接传输到输出麦克风设备，您将直接听到自己的声音");
 
                     ImGui::NewLine();
                     
@@ -328,13 +408,16 @@ namespace menu
     }
 
     DWORD* m_pBindingKey;
-    void KeyBind(const char* pName, DWORD* pKey)
+    void KeyBind(const char* pName, DWORD* pKey, ImVec2 v2Size)
     {
-        ImGui::Text(pName);
-        if (ImGui::Button((m_pBindingKey ? "[...]" : sKeyCodes[*pKey]), ImVec2(100, 40)))
+        if(pName)
+            ImGui::Text(pName);
+        ImGui::PushID((int)pKey);
+        if (ImGui::Button(((m_pBindingKey && m_pBindingKey == pKey) ? "[...]" : sKeyCodes[*pKey]), v2Size))
         {
             m_pBindingKey = pKey;
         }
+        ImGui::PopID();
     }
 
     // Win32 message handler

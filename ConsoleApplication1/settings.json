@@ -1,1 +1,1 @@
-{"bAutoLoadSettings":false,"bEnableLoopback":true,"bShowConsole":true,"dwStartKey":112}
+{"bAutoLoadSettings":false,"bEnableLoopback":false,"bShowConsole":true,"dwAccelerateStartKey":0,"dwReverseStartKey":0,"dwTrashMicStartKey":0,"fMaxFps":30.0,"fSpeedMultiplier":1.0,"iSelectedSpeedMultiplier":0}
