@@ -2,7 +2,7 @@
 
 [中文](README.md)
 
-Use the buttons to control the "real-time" reverse play microphone recorded sound to achieve reverse voice chat. (Note: The future has not happened yet.)
+Use the buttons to control the "real-time" reverse play microphone recorded sound to achieve reverse voice chat. (!!ATTENTION!! The future is still in the future.)
 
 # Build requirement
 
