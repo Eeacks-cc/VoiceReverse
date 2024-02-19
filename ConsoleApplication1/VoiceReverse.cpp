@@ -23,12 +23,15 @@ std::vector<unsigned char> vBuffer;
 
 enum eMode {
     VR_NONE,
+    VR_PlayLast,
     VR_Reverse,
     VR_SpeedMultiplier,
     VR_TrashMic,
     VR_Record,
     VR_PlayRecord,
     VR_PlayRecordReverse,
+    VR_NormalSpeedReverse,
+    VR_NormalSpeed
 };
 
 void swap_byte(std::vector<unsigned char> &vTarget, int a, int b)
@@ -86,6 +89,68 @@ void CALLBACK waveOutProc(HWAVEIN hwi, UINT uMsg, DWORD_PTR dwInstance, DWORD_PT
         bLastPlayDone = true;
         vBuffer.clear();
     }
+}
+
+__int64 ulTimer = 0;
+__int64 ulLastTickCount = 0;
+
+bool bPlayBack = false;
+void* pLastPlaybackBuffer = nullptr;
+size_t szLastPlaybackBufferSize = 0;
+
+eMode iIncomingMode;
+eMode iLastMode;
+
+void on_play_end()
+{
+    if (bPlayBack)
+        return;
+
+    if (pLastPlaybackBuffer)
+    {
+        free(pLastPlaybackBuffer);
+        pLastPlaybackBuffer = nullptr;
+    }
+    pLastPlaybackBuffer = malloc(vBuffer.size());
+    szLastPlaybackBufferSize = vBuffer.size();
+    memcpy(pLastPlaybackBuffer, vBuffer.data(), vBuffer.size());
+
+}
+
+void process_playback()
+{
+    vBuffer.clear();
+    vBuffer.resize(szLastPlaybackBufferSize);
+    memcpy(vBuffer.data(), pLastPlaybackBuffer, szLastPlaybackBufferSize);
+}
+
+void process_audio_reverse_normalspeed()
+{
+    DWORD64 delta = GetTickCount64() - dwStartTime;
+    std::cout << "playing...( " << delta << "ms captured)" << std::endl;
+    WAVEHDR* wHeader = nullptr;
+
+    // processing audio
+    for (int i = 0; i < vBuffer.size() / 2; i += 2)
+    {
+        int reverse_pos = vBuffer.size() - i - 1;
+
+        swap_byte(vBuffer, i, reverse_pos - 1);
+        swap_byte(vBuffer, i + 1, reverse_pos);
+    }
+
+    wHeader = wwrapper::HeaderQueue::Create(&vBuffer, delta + 1000);
+    bInPlaying = true;
+
+    if (waveOutWrite(SpeedMultiplier::hWaveOut[1], wHeader, sizeof(WAVEHDR)) != MMSYSERR_NOERROR)
+        LOG("Excepted while playing backward");
+
+    while (!bLastPlayDone)
+        Sleep(1);
+
+    bInPlaying = false;
+    bLastPlayDone = false;
+    bInCapture = false;
 }
 
 void process_audio_reverse()
@@ -253,14 +318,6 @@ void processing_play_record_reverse()
 
 eMode key_trigger()
 {
-    if (GetAsyncKeyState(config::dwReverseStartKey) != 0)
-        return VR_Reverse;
-    if (GetAsyncKeyState(config::dwAccelerateStartKey) != 0)
-        return VR_SpeedMultiplier;
-    if (GetAsyncKeyState(config::dwTrashMicStartKey) != 0)
-        return VR_TrashMic;
-    if (GetAsyncKeyState(config::dwRecordStartKey) != 0)
-        return VR_Record;
     for (int i = 0; i < config::vSavedClips.size(); i++)
     {
         if (GetAsyncKeyState(config::vSavedClips[i].m_dwHotKey) != 0)
@@ -277,10 +334,65 @@ eMode key_trigger()
             return VR_PlayRecordReverse;
         }
     }
+
+    bool bAnyPressed = false;
+    if (GetAsyncKeyState(config::dwReverseStartKey) != 0)
+    {
+        iIncomingMode = VR_Reverse;
+        bAnyPressed = true;
+    }
+    if (GetAsyncKeyState(config::dwAccelerateStartKey) != 0)
+    {
+        iIncomingMode = VR_SpeedMultiplier;
+        bAnyPressed = true;
+    }
+    if (GetAsyncKeyState(config::dwTrashMicStartKey) != 0)
+    {
+        iIncomingMode = VR_TrashMic;
+        bAnyPressed = true;
+    }
+    if (GetAsyncKeyState(config::dwRecordStartKey) != 0)
+    {
+        iIncomingMode = VR_Record;
+        bAnyPressed = true;
+    }
+    if (GetAsyncKeyState(config::dwNormalSpeedReverseKey) != 0)
+    {
+        iIncomingMode = VR_NormalSpeedReverse;
+        bAnyPressed = true;
+    }
+    if (GetAsyncKeyState(config::dwNormalSpeedKey) != 0)
+    {
+        iIncomingMode = VR_NormalSpeed;
+        bAnyPressed = true;
+    }
+    if (bAnyPressed)
+    {
+        if (ulLastTickCount)
+            ulTimer += GetTickCount64() - ulLastTickCount;
+        if (ulTimer > 500)
+        {
+            return iIncomingMode;
+        }
+    }
+    else
+    {
+        if (ulTimer && !bInCapture) // key up
+        {
+            LOG("flick click");
+            if (pLastPlaybackBuffer)
+            {
+                bPlayBack = true;
+                ulTimer = 0;
+                return iIncomingMode;
+            }
+        }
+        ulTimer = 0;
+    }
+    ulLastTickCount = GetTickCount64();
     return VR_NONE;
 }
 
-eMode iLastMode;
 
 int main()
 {
@@ -293,6 +405,17 @@ int main()
     wwrapper::GetOutputDevices(config::m_vOutputDevices);
     wwrapper::GetInputDevices(config::m_vInputDevices);
     menu::Initialize();
+
+    using GeneralAudioProcessFunc = void(__fastcall*)(void);
+    GeneralAudioProcessFunc Functions[] = {
+        process_audio_reverse,
+        processing_audio_speed_multiplier,
+        processing_audio_trashmic,
+        processing_record,
+        processing_play_record,
+        processing_play_record_reverse
+    };
+
 
     bInCapture = false;
     while (!config::bEnd)
@@ -307,6 +430,14 @@ int main()
             eMode iMode = key_trigger();
             if (iMode > VR_NONE)
             {
+                if (bPlayBack)
+                {
+                    dwStartTime = GetTickCount64();
+                    LOG("start playback...");
+                    process_playback();
+                    iLastMode = iMode;
+                    goto PLAY; // ghetto
+                }
                 if (!bInCapture)
                 {
                     dwStartTime = GetTickCount64();
@@ -316,8 +447,12 @@ int main()
                 }
                 continue; // dont process when recording
             }
+            PLAY:
             if (vBuffer.size() > 0)
             {
+                if (!bPlayBack)
+                    on_play_end();
+                // Functions[iLastMode];
                 switch (iLastMode) // it just for read-friendly, use function array is better...
                 {
                 case VR_Reverse:
@@ -350,8 +485,20 @@ int main()
                     processing_play_record_reverse();
                 }
                 break;
+                case VR_NormalSpeed:
+                {
+
+                }
+                break;
+                case VR_NormalSpeedReverse:
+                {
+
+                }
+                break;
                 }
                 iLastMode = VR_NONE;
+                if (bPlayBack)
+                    bPlayBack = false;
             }
             
             Sleep(1);

@@ -29,6 +29,7 @@ namespace config
 		json["dwTrashMicStartKey"] = dwTrashMicStartKey;
 		json["fSpeedMultiplier"] = fSpeedMultiplier;
 		json["iSelectedSpeedMultiplier"] = iSelectedSpeedMultiplier;
+		json["dwRecordStartKey"] = dwRecordStartKey;
 		json["bShowConsole"] = bShowConsole;
 		json["bAutoLoadSettings"] = bAutoLoadSettings;
 		json["fMaxFps"] = fMaxFps;
@@ -56,6 +57,7 @@ namespace config
 		dwReverseStartKey = json["dwReverseStartKey"].get<DWORD>();
 		dwAccelerateStartKey = json["dwAccelerateStartKey"].get<DWORD>();
 		dwTrashMicStartKey = json["dwTrashMicStartKey"].get<DWORD>();
+		dwRecordStartKey = json["dwRecordStartKey"].get<DWORD>();
 		fSpeedMultiplier = json["fSpeedMultiplier"].get<float>();
 		iSelectedSpeedMultiplier = json["iSelectedSpeedMultiplier"].get<int>();
 		bShowConsole = json["bShowConsole"].get<bool>();

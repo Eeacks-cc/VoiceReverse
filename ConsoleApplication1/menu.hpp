@@ -204,7 +204,25 @@ namespace menu
                             ImGui::SetTooltip(u8"[声音加速]鼠标单击之后开始记录按键，按下任意键将绑定该按键为热键，绑定时按下ESC来清除绑定");
                     }
                     ImGui::EndChild();
+                    /*
+                    ImGui::Text(u8"音频处理-独立效果");
+                    if (ImGui::BeginChild("##ChildSoundMultiplier", ImVec2(width / 2 - 30, 220), true))
+                    {
+                        KeyBind(u8"标准速率倒放", &config::dwNormalSpeedReverseKey);
+                        if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+                            ImGui::SetTooltip(u8"[标准速率倒放]鼠标单击之后开始记录按键，按下任意键将绑定该按键为热键，绑定时按下ESC来清除绑定");
+                        ImGui::NewLine();
+                        KeyBind(u8"标准速度正放", &config::dwNormalSpeedKey);
+                        if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+                            ImGui::SetTooltip(u8"[标准速度正放]鼠标单击之后开始记录按键，按下任意键将绑定该按键为热键，绑定时按下ESC来清除绑定");
+                        ImGui::NewLine();
+                    }
+                    ImGui::EndChild();
+                    */
                     ImGui::NewLine();
+
+
+
 
                     ImGui::Text(u8"留声");
                     if (ImGui::BeginChild("##ChildSoundRecord", ImVec2(width / 2 - 30, 400), true))

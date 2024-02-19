@@ -18,7 +18,9 @@ namespace config
 	DWORD dwReverseStartKey = 0;
 	DWORD dwAccelerateStartKey = 0;
 	DWORD dwTrashMicStartKey = 0;
-	
+	DWORD dwNormalSpeedReverseKey = 0;
+	DWORD dwNormalSpeedKey = 0;
+
 	struct SavedClip
 	{
 		std::string m_sName;
